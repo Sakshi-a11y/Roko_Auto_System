@@ -1,0 +1,1 @@
+Place images for the Vehicle Owner frontend here (logos, icons, illustrations).

@@ -1,0 +1,55 @@
+/* Simple professional transport theme */
+:root{
+  --bg:#f6f8fb;
+  --card:#ffffff;
+  --primary:#0b3d91; /* deep blue */
+  --accent:#ff8c00; /* orange */
+  --muted:#6b7280;
+  --shadow: 0 6px 18px rgba(11,61,145,0.08);
+}
+*{box-sizing:border-box}
+body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); color:#111; margin:0}
+.container{max-width:1100px;margin:0 auto;padding:1rem}
+.nav{background:linear-gradient(90deg,var(--primary), #0f4aa1); color:white}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem}
+.brand{color:white;text-decoration:none;font-weight:700;font-size:1.15rem}
+.nav-links{list-style:none;display:flex;gap:1rem;margin:0;padding:0}
+.nav-links a{color:rgba(255,255,255,0.9);text-decoration:none;padding:0.25rem 0.5rem;border-radius:6px}
+.nav-links a.active, .nav-links a:hover{background:rgba(255,255,255,0.08)}
+.center-page{display:flex;align-items:center;justify-content:center;height:calc(100vh - 70px)}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:1.25rem}
+.auth-card{width:100%;max-width:420px}
+h2{margin-top:0}
+.muted{color:var(--muted);font-size:0.95rem}
+.form-row{margin-bottom:0.85rem}
+.form-row label{display:block;margin-bottom:0.35rem;color:var(--muted);font-size:0.9rem}
+.form-row input, .form-row textarea{width:100%;padding:0.65rem;border:1px solid #e6e9ef;border-radius:8px}
+.form-actions{text-align:right}
+.btn{display:inline-flex;align-items:center;gap:0.5rem;border:none;padding:0.6rem 0.9rem;border-radius:8px;cursor:pointer}
+.btn.primary{background:var(--accent);color:white}
+.btn.secondary{background:#eef2ff;color:var(--primary)}
+.btn:hover{transform:translateY(-2px);transition:all .18s ease}
+.dashboard{padding:2rem 1rem}
+.dashboard-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+.info-card p{margin:0.4rem 0;color:#222}
+@media (max-width:800px){
+  .cards{grid-template-columns:1fr}
+  .center-page{height:auto;padding:2rem 0}
+}
+/* small niceties */
+a{color:var(--primary)}
+input:focus,textarea:focus{outline:2px solid rgba(11,61,145,0.08);border-color:var(--primary)}
+.footer{padding:2rem;text-align:center;color:var(--muted)}
+
+/* Compact modifier for tighter auth forms */
+.auth-card.compact{max-width:340px;padding:0.6rem}
+.auth-card.compact h2{font-size:1.15rem;margin-bottom:0.25rem}
+.auth-card.compact .muted{font-size:0.85rem}
+.auth-card.compact .form-row{margin-bottom:0.5rem}
+.auth-card.compact .form-row label{margin-bottom:0.25rem;font-size:0.85rem}
+.auth-card.compact .form-row input,.auth-card.compact .form-row textarea{padding:0.45rem;border-radius:6px}
+.auth-card.compact .form-actions{text-align:right}
+.auth-card.compact .form-actions{text-align:center}
+.auth-card.compact .btn{padding:0.45rem 0.7rem;border-radius:6px}
+.center-page .auth-card.compact{box-shadow:0 4px 12px rgba(11,61,145,0.06)}
