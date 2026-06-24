@@ -39,11 +39,18 @@ registerForm?.addEventListener('submit', async function (e) {
         return;
     }
 
+    const submitBtn = registerForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Registering...';
+    }
+
     try {
-        const response = await fetch('http://localhost:8080/register', {
+        const response = await fetch(`${window.location.origin}/register`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'text/plain'
             },
             body: JSON.stringify({
                 name: fullName,
@@ -60,12 +67,21 @@ registerForm?.addEventListener('submit', async function (e) {
         if (response.ok) {
             alert('Registration Successful');
             window.location.href = 'login.html';
-        } else {
-            alert('Registration Failed: ' + result);
+            return;
         }
+
+        alert('Registration Failed: ' + (result || response.statusText));
 
     } catch (error) {
         console.error('Error:', error);
-        alert('Unable to connect to backend server.');
+        alert(
+            'Unable to connect to backend server. Make sure the app is running on ' +
+            window.location.origin
+        );
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Register';
+        }
     }
 });
