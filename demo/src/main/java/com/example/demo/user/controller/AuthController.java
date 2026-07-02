@@ -2,9 +2,8 @@ package com.example.demo.user.controller;
 
 import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.entity.VehicleEntity;
-import com.example.demo.user.entity.ViolationLogEntity;
-import com.example.demo.user.repository.ViolationLogRepository;
 import com.example.demo.user.service.UserService;
+import com.example.demo.user.service.ViolationService;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -21,11 +20,11 @@ import java.util.Optional;
 public class AuthController {
 
     private final UserService userService;
-    private final ViolationLogRepository violationLogRepository;
+    private final ViolationService violationService;
 
-    public AuthController(UserService userService, ViolationLogRepository violationLogRepository) {
+    public AuthController(UserService userService, ViolationService violationService) {
         this.userService = userService;
-        this.violationLogRepository = violationLogRepository;
+        this.violationService = violationService;
     }
 
     @GetMapping("/")
@@ -97,12 +96,8 @@ public class AuthController {
             response.put("registrationDate",
                     vehicle.getRegistrationDate() != null ? vehicle.getRegistrationDate().toString() : "N/A");
 
-            Optional<ViolationLogEntity> latestLog = violationLogRepository
-                    .findTopByVehicleOrderByViolationDateDesc(vehicle);
-            if (latestLog.isPresent() && latestLog.get().getStrikeCount() != null) {
-                strikeCount = latestLog.get().getStrikeCount();
-                status = strikeCount >= 3 ? "blocked" : "active";
-            }
+            strikeCount = violationService.getStrikeCount(vehicle);
+            status = violationService.deriveStatus(strikeCount);
         } else {
             response.put("vehicletype", "N/A");
             response.put("registrationDate", "N/A");
@@ -110,34 +105,6 @@ public class AuthController {
 
         response.put("strikeCount", strikeCount);
         response.put("status", status);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/violation/increase")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> increaseStrike(@RequestParam String vehicleNumber) {
-        Optional<VehicleEntity> vehicleOpt = userService.findVehicleByNumber(vehicleNumber);
-        if (vehicleOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Vehicle not found"));
-        }
-
-        VehicleEntity vehicle = vehicleOpt.get();
-        ViolationLogEntity latestLog = violationLogRepository.findTopByVehicleOrderByViolationDateDesc(vehicle)
-                .orElseGet(() -> {
-                    ViolationLogEntity log = new ViolationLogEntity();
-                    log.setVehicle(vehicle);
-                    log.setStrikeCount(0);
-                    log.setViolationDate(java.time.LocalDateTime.now());
-                    return violationLogRepository.save(log);
-                });
-
-        latestLog.setStrikeCount(latestLog.getStrikeCount() == null ? 1 : latestLog.getStrikeCount() + 1);
-        latestLog.setViolationDate(java.time.LocalDateTime.now());
-        violationLogRepository.save(latestLog);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("strikeCount", latestLog.getStrikeCount());
-        response.put("status", latestLog.getStrikeCount() >= 3 ? "blocked" : "active");
         return ResponseEntity.ok(response);
     }
 }

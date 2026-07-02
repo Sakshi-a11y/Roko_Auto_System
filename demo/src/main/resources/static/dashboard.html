@@ -40,8 +40,16 @@
         <p><strong>Status:</strong> <span id="vehicleStatus">N/A</span></p>
       </div>
     </section>
+
+    <section id="blockedPanel" class="card payment-card hidden">
+      <h3><i class="fa-solid fa-triangle-exclamation"></i> Vehicle Blocked</h3>
+      <p class="muted">Your vehicle has reached 3 strikes. Pay the fine to reset strikes and reactivate your account.</p>
+      <p><strong>Fine Amount:</strong> ₹<span id="fineAmount">500</span></p>
+      <button id="payFineBtn" class="btn primary">Pay Fine &amp; Reactivate</button>
+    </section>
   </main>
 
-  <script src="js/dashboard.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="js/dashboard.js?v=3"></script>
 </body>
 </html>

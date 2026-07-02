@@ -33,6 +33,11 @@ h2{margin-top:0}
 .dashboard-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
 .info-card p{margin:0.4rem 0;color:#222}
+.status-active{color:#15803d;font-weight:700;text-transform:capitalize}
+.status-blocked{color:#b91c1c;font-weight:700;text-transform:capitalize}
+.payment-card{margin-top:1rem;border-left:4px solid var(--accent)}
+.payment-card.hidden{display:none}
+.payment-card h3{margin-top:0;color:#b45309}
 @media (max-width:800px){
   .cards{grid-template-columns:1fr}
   .center-page{height:auto;padding:2rem 0}
