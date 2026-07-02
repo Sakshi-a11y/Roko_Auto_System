@@ -7,8 +7,8 @@ registerForm?.addEventListener('submit', async function (e) {
     const contact = document.getElementById('contact').value.trim();
     const address = document.getElementById('address').value.trim();
     const vehicleType = document.getElementById('vehicleType').value.trim();
-    const registrationNumber = document
-        .getElementById('registrationNumber')
+    const vehicleNumber = document
+        .getElementById('vehicleNumber')
         .value.trim()
         .toUpperCase();
 
@@ -21,7 +21,7 @@ registerForm?.addEventListener('submit', async function (e) {
         !contact ||
         !address ||
         !vehicleType ||
-        !registrationNumber ||
+        !vehicleNumber ||
         !password ||
         !confirmPassword
     ) {
@@ -57,7 +57,7 @@ registerForm?.addEventListener('submit', async function (e) {
                 contact: contact,
                 address: address,
                 password: password,
-                vehicleNumber: registrationNumber,
+                vehicleNumber: vehicleNumber,
                 vehicleType: vehicleType
             })
         });

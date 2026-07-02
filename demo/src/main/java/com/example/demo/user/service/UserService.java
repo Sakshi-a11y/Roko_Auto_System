@@ -7,6 +7,7 @@ import com.example.demo.user.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,7 +17,7 @@ public class UserService {
     private final VehicleRepository vehicleRepository;
 
     public UserService(UserRepository userRepository,
-                       VehicleRepository vehicleRepository) {
+            VehicleRepository vehicleRepository) {
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
     }
@@ -29,9 +30,10 @@ public class UserService {
                     "This vehicle number is already registered. Please login instead.");
         }
 
-        vehicle.setUser(user);
-        user.setVehicles(java.util.List.of(vehicle));
-        userRepository.save(user);
+        UserEntity savedUser = userRepository.save(user);
+        vehicle.setUser(savedUser);
+        vehicleRepository.save(vehicle);
+        savedUser.setVehicles(List.of(vehicle));
     }
 
     @Transactional(readOnly = true)
@@ -39,6 +41,11 @@ public class UserService {
         return vehicleRepository.findByVehicleNumber(vehicleNumber)
                 .filter(vehicle -> vehicle.getUser().getPassword().equals(password))
                 .map(VehicleEntity::getUser);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<VehicleEntity> findVehicleByNumber(String vehicleNumber) {
+        return vehicleRepository.findByVehicleNumber(vehicleNumber);
     }
 
     // ➤ Login using vehicle number + password
