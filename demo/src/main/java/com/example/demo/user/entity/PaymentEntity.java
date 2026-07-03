@@ -1,47 +1,46 @@
 package com.example.demo.user.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payment")
+@Table(name = "payment_Record")
 public class PaymentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "payment_id")
+    private Long paymentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id", nullable = false)
     private VehicleEntity vehicle;
 
-    @Column(name = "razorpay_order_id", unique = true, nullable = false)
+    @Column(name = "razorpay_order_id", length = 100)
     private String razorpayOrderId;
 
-    @Column(name = "razorpay_payment_id", unique = true)
+    @Column(name = "razorpay_payment_id", length = 100)
     private String razorpayPaymentId;
 
-    @Column(nullable = false)
-    private Integer amount;
+    @Column(name = "razorpay_signature", length = 255)
+    private String razorpaySignature;
 
-    @Column(nullable = false)
-    private String currency;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
 
-    @Column(nullable = false)
-    private String status;
+    @Column(nullable = false, columnDefinition = "ENUM('PENDING','SUCCESS','FAILED')")
+    private String status = "PENDING";
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "payment_date")
+    private LocalDateTime paymentDate;
 
-    @Column(name = "paid_at")
-    private LocalDateTime paidAt;
-
-    public Long getId() {
-        return id;
+    public Long getPaymentId() {
+        return paymentId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setPaymentId(Long paymentId) {
+        this.paymentId = paymentId;
     }
 
     public VehicleEntity getVehicle() {
@@ -68,20 +67,20 @@ public class PaymentEntity {
         this.razorpayPaymentId = razorpayPaymentId;
     }
 
-    public Integer getAmount() {
+    public String getRazorpaySignature() {
+        return razorpaySignature;
+    }
+
+    public void setRazorpaySignature(String razorpaySignature) {
+        this.razorpaySignature = razorpaySignature;
+    }
+
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Integer amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
     }
 
     public String getStatus() {
@@ -92,19 +91,11 @@ public class PaymentEntity {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getPaymentDate() {
+        return paymentDate;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getPaidAt() {
-        return paidAt;
-    }
-
-    public void setPaidAt(LocalDateTime paidAt) {
-        this.paidAt = paidAt;
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
     }
 }

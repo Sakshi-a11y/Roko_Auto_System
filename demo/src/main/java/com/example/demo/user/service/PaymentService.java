@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,10 @@ import java.util.Optional;
 
 @Service
 public class PaymentService {
+
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_SUCCESS = "SUCCESS";
+    private static final String STATUS_FAILED = "FAILED";
 
     private final PaymentRepository paymentRepository;
     private final ViolationService violationService;
@@ -68,10 +73,9 @@ public class PaymentService {
         PaymentEntity payment = new PaymentEntity();
         payment.setVehicle(vehicle);
         payment.setRazorpayOrderId(order.get("id"));
-        payment.setAmount(amountInPaise);
-        payment.setCurrency("INR");
-        payment.setStatus("CREATED");
-        payment.setCreatedAt(LocalDateTime.now());
+        payment.setAmount(BigDecimal.valueOf(fineAmountInRupees));
+        payment.setStatus(STATUS_PENDING);
+        payment.setPaymentDate(LocalDateTime.now());
         paymentRepository.save(payment);
 
         Map<String, Object> response = new HashMap<>();
@@ -90,7 +94,7 @@ public class PaymentService {
             String signature) throws RazorpayException {
 
         Optional<PaymentEntity> existingPayment = paymentRepository.findByRazorpayPaymentId(paymentId);
-        if (existingPayment.isPresent() && "PAID".equals(existingPayment.get().getStatus())) {
+        if (existingPayment.isPresent() && STATUS_SUCCESS.equals(existingPayment.get().getStatus())) {
             Map<String, Object> response = violationService.getViolationDetails(vehicle);
             response.put("message", "Payment already verified. Vehicle is active.");
             return response;
@@ -109,12 +113,16 @@ public class PaymentService {
         attributes.put("razorpay_signature", signature);
 
         if (!Utils.verifyPaymentSignature(attributes, keySecret)) {
+            payment.setStatus(STATUS_FAILED);
+            payment.setPaymentDate(LocalDateTime.now());
+            paymentRepository.save(payment);
             throw new IllegalArgumentException("Payment verification failed.");
         }
 
         payment.setRazorpayPaymentId(paymentId);
-        payment.setStatus("PAID");
-        payment.setPaidAt(LocalDateTime.now());
+        payment.setRazorpaySignature(signature);
+        payment.setStatus(STATUS_SUCCESS);
+        payment.setPaymentDate(LocalDateTime.now());
         paymentRepository.save(payment);
 
         Map<String, Object> response = violationService.resetStrikes(vehicle);
