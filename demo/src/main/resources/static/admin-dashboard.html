@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Dashboard</title>
+  <link href="css/style.css?v=7" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="admin-page">
+  <nav class="nav admin-nav">
+    <div class="container nav-inner">
+      <a class="brand" href="admin-dashboard.html"><i class="fa-solid fa-user-shield"></i> Admin Portal</a>
+      <ul class="nav-links">
+        <li><a href="admin-dashboard.html" data-nav="dashboard" class="active">Dashboard</a></li>
+        <li><a href="admin-vehicles.html" data-nav="vehicles">Vehicles</a></li>
+        <li><a href="admin-payments.html" data-nav="payments">Payments</a></li>
+        <li><a href="admin-login.html" id="navLogout">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container dashboard admin-dashboard">
+    <header class="dashboard-header">
+      <h1>Welcome, <span id="adminName">Admin</span></h1>
+      <button id="logoutBtn" class="btn secondary">Logout</button>
+    </header>
+
+    <section class="admin-menu-grid">
+      <a href="admin-vehicles.html" class="card admin-menu-card">
+        <i class="fa-solid fa-truck-moving"></i>
+        <h3>All Registered Vehicles</h3>
+        <p class="muted">View all vehicle owners, strike count, and status</p>
+      </a>
+
+      <a href="admin-payments.html" class="card admin-menu-card">
+        <i class="fa-solid fa-indian-rupee-sign"></i>
+        <h3>Payment Details</h3>
+        <p class="muted">View all payment records and transaction status</p>
+      </a>
+    </section>
+  </main>
+
+  <script src="js/admin-common.js"></script>
+  <script src="js/admin-dashboard.js?v=3"></script>
+</body>
+</html>

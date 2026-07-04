@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Registered Vehicles</title>
+  <link href="css/style.css?v=7" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="admin-page">
+  <nav class="nav admin-nav">
+    <div class="container nav-inner">
+      <a class="brand" href="admin-dashboard.html"><i class="fa-solid fa-user-shield"></i> Admin Portal</a>
+      <ul class="nav-links">
+        <li><a href="admin-dashboard.html" data-nav="dashboard">Dashboard</a></li>
+        <li><a href="admin-vehicles.html" data-nav="vehicles" class="active">Vehicles</a></li>
+        <li><a href="admin-payments.html" data-nav="payments">Payments</a></li>
+        <li><a href="admin-login.html" id="navLogout">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container dashboard admin-dashboard">
+    <header class="dashboard-header">
+      <h1>All Registered Vehicles</h1>
+      <a href="admin-dashboard.html" class="btn secondary">Back to Dashboard</a>
+    </header>
+
+    <section class="card admin-section">
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Vehicle No</th>
+              <th>Owner</th>
+              <th>Contact</th>
+              <th>Type</th>
+              <th>Registration Date</th>
+              <th>Strikes</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="vehiclesBody">
+            <tr><td colspan="8" class="muted">Loading vehicles...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/admin-common.js"></script>
+  <script src="js/admin-vehicles.js"></script>
+</body>
+</html>

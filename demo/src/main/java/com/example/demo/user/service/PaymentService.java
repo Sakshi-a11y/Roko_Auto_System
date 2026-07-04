@@ -2,6 +2,7 @@ package com.example.demo.user.service;
 
 import com.example.demo.user.entity.PaymentEntity;
 import com.example.demo.user.entity.VehicleEntity;
+import com.example.demo.user.entity.ViolationLogEntity;
 import com.example.demo.user.repository.PaymentRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
@@ -14,9 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class PaymentService {
@@ -76,6 +81,17 @@ public class PaymentService {
         payment.setAmount(BigDecimal.valueOf(fineAmountInRupees));
         payment.setStatus(STATUS_PENDING);
         payment.setPaymentDate(LocalDateTime.now());
+
+        Optional<ViolationLogEntity> blockViolation = violationService.getLatestBlockViolation(vehicle);
+        if (blockViolation.isPresent()) {
+            ViolationLogEntity blockLog = blockViolation.get();
+            payment.setStrikeCountAtViolation(blockLog.getStrikeCount());
+            payment.setViolationDate(blockLog.getViolationDate());
+        } else {
+            payment.setStrikeCountAtViolation(strikeCount);
+            payment.setViolationDate(LocalDateTime.now());
+        }
+
         paymentRepository.save(payment);
 
         Map<String, Object> response = new HashMap<>();
@@ -128,5 +144,114 @@ public class PaymentService {
         Map<String, Object> response = violationService.resetStrikes(vehicle);
         response.put("message", "Payment successful. Vehicle reactivated.");
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getPaymentDetailHistory(VehicleEntity vehicle) {
+        List<Map<String, Object>> records = new ArrayList<>();
+        Set<Long> matchedPaymentIds = new HashSet<>();
+
+        List<ViolationLogEntity> strikeLogs = violationService.getStrikeLogsOldestFirst(vehicle);
+        List<PaymentEntity> payments = new ArrayList<>(
+                paymentRepository.findByVehicleVehicleId(vehicle.getVehicleId()));
+        payments.sort((a, b) -> {
+            if (a.getPaymentDate() == null && b.getPaymentDate() == null) {
+                return Long.compare(a.getPaymentId(), b.getPaymentId());
+            }
+            if (a.getPaymentDate() == null) {
+                return 1;
+            }
+            if (b.getPaymentDate() == null) {
+                return -1;
+            }
+            return a.getPaymentDate().compareTo(b.getPaymentDate());
+        });
+
+        for (ViolationLogEntity log : strikeLogs) {
+            Map<String, Object> record = new HashMap<>();
+            record.put("strikeCount", log.getStrikeCount());
+            record.put("violationDate",
+                    log.getViolationDate() != null ? log.getViolationDate().toString() : null);
+            record.put("paymentDate", null);
+            record.put("amount", null);
+            record.put("paymentStatus", null);
+
+            if (log.getStrikeCount() >= 3) {
+                findMatchingPayment(payments, log, matchedPaymentIds).ifPresent(payment -> {
+                    matchedPaymentIds.add(payment.getPaymentId());
+                    applyPaymentDetails(record, payment);
+                });
+            }
+
+            records.add(record);
+        }
+
+        for (PaymentEntity payment : payments) {
+            if (matchedPaymentIds.contains(payment.getPaymentId())) {
+                continue;
+            }
+
+            Map<String, Object> record = new HashMap<>();
+            record.put("strikeCount",
+                    payment.getStrikeCountAtViolation() != null ? payment.getStrikeCountAtViolation() : 3);
+            record.put("violationDate", formatDateTime(
+                    payment.getViolationDate() != null ? payment.getViolationDate() : payment.getPaymentDate()));
+            applyPaymentDetails(record, payment);
+            records.add(record);
+        }
+
+        records.sort((a, b) -> {
+            String dateA = (String) a.getOrDefault("violationDate", a.get("paymentDate"));
+            String dateB = (String) b.getOrDefault("violationDate", b.get("paymentDate"));
+            if (dateA == null && dateB == null) {
+                return 0;
+            }
+            if (dateA == null) {
+                return 1;
+            }
+            if (dateB == null) {
+                return -1;
+            }
+            return dateB.compareTo(dateA);
+        });
+
+        return records;
+    }
+
+    private Optional<PaymentEntity> findMatchingPayment(
+            List<PaymentEntity> payments,
+            ViolationLogEntity violationLog,
+            Set<Long> matchedPaymentIds) {
+
+        return payments.stream()
+                .filter(payment -> !matchedPaymentIds.contains(payment.getPaymentId()))
+                .filter(payment -> isPaymentForViolation(payment, violationLog))
+                .findFirst()
+                .or(() -> payments.stream()
+                        .filter(payment -> !matchedPaymentIds.contains(payment.getPaymentId()))
+                        .findFirst());
+    }
+
+    private boolean isPaymentForViolation(PaymentEntity payment, ViolationLogEntity violationLog) {
+        if (payment.getViolationDate() != null && violationLog.getViolationDate() != null) {
+            return !payment.getViolationDate().isBefore(violationLog.getViolationDate());
+        }
+
+        if (payment.getPaymentDate() != null && violationLog.getViolationDate() != null) {
+            return !payment.getPaymentDate().isBefore(violationLog.getViolationDate());
+        }
+
+        return true;
+    }
+
+    private void applyPaymentDetails(Map<String, Object> record, PaymentEntity payment) {
+        record.put("paymentDate",
+                payment.getPaymentDate() != null ? payment.getPaymentDate().toString() : null);
+        record.put("amount", payment.getAmount());
+        record.put("paymentStatus", payment.getStatus());
+    }
+
+    private String formatDateTime(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.toString() : null;
     }
 }

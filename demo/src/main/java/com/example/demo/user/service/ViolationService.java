@@ -7,8 +7,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
 import java.util.Optional;
 
 @Service
@@ -22,11 +25,15 @@ public class ViolationService {
 
     @Transactional
     public Map<String, Object> increaseStrike(VehicleEntity vehicle) {
-        ViolationLogEntity latestLog = getOrCreateLatestLog(vehicle);
-        latestLog.setStrikeCount(latestLog.getStrikeCount() == null ? 1 : latestLog.getStrikeCount() + 1);
-        latestLog.setViolationDate(LocalDateTime.now());
-        violationLogRepository.save(latestLog);
-        return buildStrikeResponse(latestLog.getStrikeCount());
+        int newCount = getStrikeCount(vehicle) + 1;
+
+        ViolationLogEntity log = new ViolationLogEntity();
+        log.setVehicle(vehicle);
+        log.setStrikeCount(newCount);
+        log.setViolationDate(LocalDateTime.now());
+        violationLogRepository.save(log);
+
+        return buildStrikeResponse(newCount);
     }
 
     @Transactional(readOnly = true)
@@ -49,10 +56,11 @@ public class ViolationService {
 
     @Transactional
     public Map<String, Object> resetStrikes(VehicleEntity vehicle) {
-        ViolationLogEntity latestLog = getOrCreateLatestLog(vehicle);
-        latestLog.setStrikeCount(0);
-        latestLog.setViolationDate(LocalDateTime.now());
-        violationLogRepository.save(latestLog);
+        ViolationLogEntity log = new ViolationLogEntity();
+        log.setVehicle(vehicle);
+        log.setStrikeCount(0);
+        log.setViolationDate(LocalDateTime.now());
+        violationLogRepository.save(log);
         return buildStrikeResponse(0);
     }
 
@@ -60,21 +68,46 @@ public class ViolationService {
         return strikeCount >= 3 ? "blocked" : "active";
     }
 
-    private ViolationLogEntity getOrCreateLatestLog(VehicleEntity vehicle) {
-        return violationLogRepository.findTopByVehicleOrderByViolationDateDesc(vehicle)
-                .orElseGet(() -> {
-                    ViolationLogEntity log = new ViolationLogEntity();
-                    log.setVehicle(vehicle);
-                    log.setStrikeCount(0);
-                    log.setViolationDate(LocalDateTime.now());
-                    return violationLogRepository.save(log);
-                });
-    }
-
     private Map<String, Object> buildStrikeResponse(int strikeCount) {
         Map<String, Object> response = new HashMap<>();
         response.put("strikeCount", strikeCount);
         response.put("status", deriveStatus(strikeCount));
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getViolationHistory(VehicleEntity vehicle) {
+        List<Map<String, Object>> history = new ArrayList<>();
+
+        for (ViolationLogEntity log : violationLogRepository.findByVehicleOrderByViolationDateDesc(vehicle)) {
+            if (log.getStrikeCount() == null || log.getStrikeCount() <= 0) {
+                continue;
+            }
+
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("strikeCount", log.getStrikeCount());
+            entry.put("violationDate",
+                    log.getViolationDate() != null ? log.getViolationDate().toString() : null);
+            history.add(entry);
+        }
+
+        return history;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ViolationLogEntity> getStrikeLogsOldestFirst(VehicleEntity vehicle) {
+        return violationLogRepository.findByVehicleOrderByViolationDateDesc(vehicle).stream()
+                .filter(log -> log.getStrikeCount() != null && log.getStrikeCount() > 0)
+                .sorted(Comparator.comparing(
+                        ViolationLogEntity::getViolationDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ViolationLogEntity> getLatestBlockViolation(VehicleEntity vehicle) {
+        return violationLogRepository.findByVehicleOrderByViolationDateDesc(vehicle).stream()
+                .filter(log -> log.getStrikeCount() != null && log.getStrikeCount() >= 3)
+                .findFirst();
     }
 }

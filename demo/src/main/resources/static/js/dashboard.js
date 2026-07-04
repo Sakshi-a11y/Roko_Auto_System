@@ -14,6 +14,10 @@ const vehicleStatusEl = document.getElementById('vehicleStatus');
 const blockedPanel = document.getElementById('blockedPanel');
 const payFineBtn = document.getElementById('payFineBtn');
 const fineAmountEl = document.getElementById('fineAmount');
+const paymentDetailBtn = document.getElementById('paymentDetailBtn');
+const paymentDetailPanel = document.getElementById('paymentDetailPanel');
+const closePaymentDetailBtn = document.getElementById('closePaymentDetailBtn');
+const paymentHistoryBody = document.getElementById('paymentHistoryBody');
 
 if (ownerName) ownerName.textContent = currentUser.fullName || currentUser.vehicleNumber;
 if (nameEl) nameEl.textContent = currentUser.fullName || '-';
@@ -28,7 +32,9 @@ function updateDashboardView(strikeCount, status, vehicleType) {
   const normalizedStatus = status || ((strikeCount ?? 0) >= 3 ? 'blocked' : 'active');
   if (vehicleStatusEl) {
     vehicleStatusEl.textContent = normalizedStatus;
-    vehicleStatusEl.className = normalizedStatus === 'blocked' ? 'status-blocked' : 'status-active';
+    vehicleStatusEl.className = normalizedStatus === 'blocked'
+      ? 'status-badge status-blocked'
+      : 'status-badge status-active';
   }
 
   if (vehicleTypeEl && vehicleType) {
@@ -65,6 +71,82 @@ async function refreshVehicleDetails(vehicleNumber) {
   } catch (error) {
     console.error('Unable to refresh vehicle details:', error);
   }
+}
+
+function formatDateTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function formatAmount(amount) {
+  if (amount == null) return '-';
+  return `₹${amount}`;
+}
+
+function paymentStatusClass(status) {
+  if (!status) return '';
+  const normalized = String(status).toLowerCase();
+  if (normalized === 'success') return 'status-badge status-active';
+  if (normalized === 'failed') return 'status-badge status-blocked';
+  if (normalized === 'pending') return 'status-badge status-pending';
+  return '';
+}
+
+async function loadPaymentHistory(vehicleNumber) {
+  if (!paymentHistoryBody || !vehicleNumber) return;
+
+  paymentHistoryBody.innerHTML = '<tr><td colspan="5" class="muted">Loading records...</td></tr>';
+
+  try {
+    const response = await fetch(
+      `${window.location.origin}/payment/history?vehicleNumber=${encodeURIComponent(vehicleNumber)}`
+    );
+    const records = await response.json();
+
+    if (!response.ok) {
+      paymentHistoryBody.innerHTML = `<tr><td colspan="5" class="muted">${records.error || 'Unable to load history.'}</td></tr>`;
+      return;
+    }
+
+    if (!records.length) {
+      paymentHistoryBody.innerHTML = '<tr><td colspan="5" class="muted">No violation or payment records found.</td></tr>';
+      return;
+    }
+
+    paymentHistoryBody.innerHTML = records.map(record => `
+      <tr>
+        <td>${record.strikeCount ?? '-'}</td>
+        <td>${formatDateTime(record.violationDate)}</td>
+        <td>${formatDateTime(record.paymentDate)}</td>
+        <td>${formatAmount(record.amount)}</td>
+        <td>${record.paymentStatus
+          ? `<span class="${paymentStatusClass(record.paymentStatus)}">${record.paymentStatus}</span>`
+          : '-'}</td>
+      </tr>
+    `).join('');
+  } catch (error) {
+    paymentHistoryBody.innerHTML = '<tr><td colspan="5" class="muted">Failed to load payment history.</td></tr>';
+    console.error(error);
+  }
+}
+
+function showPaymentDetails() {
+  if (!paymentDetailPanel) return;
+  paymentDetailPanel.classList.remove('hidden');
+  loadPaymentHistory(currentUser.vehicleNumber);
+  paymentDetailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function hidePaymentDetails() {
+  paymentDetailPanel?.classList.add('hidden');
 }
 
 async function loadPaymentConfig() {
@@ -144,6 +226,9 @@ async function startPayment() {
             })
           );
           alert(result.message || 'Payment successful. Vehicle reactivated.');
+          if (!paymentDetailPanel?.classList.contains('hidden')) {
+            loadPaymentHistory(vehicleNumber);
+          }
         } catch (error) {
           alert(error.message || 'Payment verification failed.');
         }
@@ -165,11 +250,13 @@ async function startPayment() {
   } finally {
     if (payFineBtn) {
       payFineBtn.disabled = false;
-      payFineBtn.textContent = 'Pay Fine & Reactivate';
+      payFineBtn.textContent = 'Proceed to Payment';
     }
   }
 }
 
+paymentDetailBtn?.addEventListener('click', showPaymentDetails);
+closePaymentDetailBtn?.addEventListener('click', hidePaymentDetails);
 payFineBtn?.addEventListener('click', startPayment);
 refreshVehicleDetails(currentUser.vehicleNumber);
 loadPaymentConfig();

@@ -68,4 +68,14 @@ public class PaymentController {
             return ResponseEntity.internalServerError().body(Map.of("error", "Payment verification failed."));
         }
     }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getPaymentHistory(@RequestParam String vehicleNumber) {
+        Optional<VehicleEntity> vehicleOpt = userService.findVehicleByNumber(vehicleNumber);
+        if (vehicleOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Vehicle not found"));
+        }
+
+        return ResponseEntity.ok(paymentService.getPaymentDetailHistory(vehicleOpt.get()));
+    }
 }

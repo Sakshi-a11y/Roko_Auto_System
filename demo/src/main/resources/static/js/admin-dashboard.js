@@ -1,0 +1,2 @@
+initAdminPage();
+setActiveNav('dashboard');

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Register</title>
+  <link href="css/style.css?v=7" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="admin-page auth-page">
+  <nav class="nav admin-nav">
+    <div class="container nav-inner">
+      <a class="brand" href="admin-dashboard.html"><i class="fa-solid fa-user-shield"></i> Admin Portal</a>
+      <ul class="nav-links">
+        <li><a href="admin-login.html">Login</a></li>
+        <li><a href="admin-register.html" class="active">Register</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="auth-layout">
+    <aside class="auth-brand-panel">
+      <span class="system-tag">Administrator Access</span>
+      <h1>Create Admin Account</h1>
+      <p>Register as an authorized administrator to manage the vehicle overloading management system.</p>
+    </aside>
+
+    <section class="auth-form-panel">
+      <div class="card auth-card">
+        <div class="auth-header">
+          <h2>Admin Registration</h2>
+          <p class="muted">Complete the form below to create your admin account</p>
+        </div>
+
+        <form id="adminRegisterForm">
+          <div class="form-row">
+            <label for="fullName">Full Name</label>
+            <div class="input-group">
+              <i class="fa-solid fa-user"></i>
+              <input id="fullName" name="fullName" type="text" placeholder="Full name" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="email">Email Address</label>
+            <div class="input-group">
+              <i class="fa-solid fa-envelope"></i>
+              <input id="email" name="email" type="email" placeholder="admin@example.com" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="password">Password</label>
+            <div class="input-group">
+              <i class="fa-solid fa-lock"></i>
+              <input id="password" name="password" type="password" placeholder="Minimum 6 characters" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="input-group">
+              <i class="fa-solid fa-shield-halved"></i>
+              <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Re-enter password" required />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Register</button>
+          </div>
+        </form>
+
+        <div class="auth-footer muted">
+          Already registered? <a href="admin-login.html">Sign in</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/admin-register.js"></script>
+</body>
+</html>

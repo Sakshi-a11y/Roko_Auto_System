@@ -35,6 +35,12 @@ public class PaymentEntity {
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
+    @Column(name = "violation_date")
+    private LocalDateTime violationDate;
+
+    @Column(name = "strike_count_at_violation")
+    private Integer strikeCountAtViolation;
+
     public Long getPaymentId() {
         return paymentId;
     }
@@ -97,5 +103,21 @@ public class PaymentEntity {
 
     public void setPaymentDate(LocalDateTime paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    public LocalDateTime getViolationDate() {
+        return violationDate;
+    }
+
+    public void setViolationDate(LocalDateTime violationDate) {
+        this.violationDate = violationDate;
+    }
+
+    public Integer getStrikeCountAtViolation() {
+        return strikeCountAtViolation;
+    }
+
+    public void setStrikeCountAtViolation(Integer strikeCountAtViolation) {
+        this.strikeCountAtViolation = strikeCountAtViolation;
     }
 }
